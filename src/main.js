@@ -52,8 +52,25 @@ for(var i=0;i<ghostdriver.system.args.length;i++) {
 		break;
 	}	
 }
-// Setting custom library path
-phantom.libraryPath = __scriptDir + '\src'; // TODO: Do an main.js search
+
+function _FileExistsInDirectory(dir, filename) {
+	var fileList = fs.list(dir);
+	for(var x = 0; x < fileList.length; x++) {
+		if(fileList[x].toLowerCase()==filename) {
+			return true;
+		}
+	}
+	return false;
+}
+
+// Finding and setting custom library path
+if(_FileExistsInDirectory(__scriptDir + '\src', 'main.js')) {
+	phantom.libraryPath = __scriptDir + '\src';
+} else if (_FileExistsInDirectory(__scriptDir, 'main.js')) {
+	phantom.libraryPath = __scriptDir;
+} else {
+	throw new Error("Could not find main.js in '" + __scriptDir + "' or src-subdirectory. Is correct GhostDriver path specified");
+}
 _log.info("Main", "Using ghostdriver on path: " + __scriptDir);
 _log.info("Main", "Working library path: " + phantom.libraryPath);
 
