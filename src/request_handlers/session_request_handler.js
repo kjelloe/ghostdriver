@@ -485,14 +485,19 @@ ghostdriver.SessionReqHand = function(session) {
             currWindow = _protoParent.getSessionCurrWindow.call(this, _session, req);
 
         _log.debug("_postUrlCommand", "Session '"+ _session.getId() +"' is about to load URL: " + postObj.url);
-
+		
         if (typeof(postObj) === "object" && postObj.url) {
             // Switch to the main frame first
             currWindow.switchToMainFrame();
 
             // Load URL and wait for load to finish (or timeout)
             currWindow.execFuncAndWaitForLoad(function() {
-                    currWindow.open(postObj.url.trim());
+					currWindow.open(postObj.url.trim(), function(status) {
+						_log.info("Page", "Opened URL: " + postObj.url.trim() + " Status: " + status );
+						if (status === "success") { 							
+							_injectUserFiles(currWindow, ghostdriver.config.userFiles);
+						}						
+					});
                 },
                 _createOnSuccessHandler(res),               //< success
                 function(errMsg) {                          //< failure/timeout
@@ -880,7 +885,23 @@ ghostdriver.SessionReqHand = function(session) {
 
     _getLog = function (req, res, logType) {
         res.success(_session.getId(), _session.getLog(logType));
-    };
+    },
+	
+	_injectUserFiles = function(page, customInjectDir) {	
+		var customInjectDirAbsolute = ghostdriver.config.libraryPath + fs.separator + customInjectDir;
+		if(!fs.isDirectory(customInjectDirAbsolute)) {
+			_log.info("Page", "WARNING: Directory '"+customInjectDirAbsolute+"' does not exist and its files will not be injected.");
+		} else { 
+			_log.info("Page", "Injecting user files from: " + customInjectDirAbsolute);
+			var customInjectList = fs.list(customInjectDirAbsolute);
+			for(var i=0;i<customInjectList.length;i++) {		
+				var customInjectFilePath = customInjectDirAbsolute + '/' + customInjectList[i];
+				if(fs.isFile(customInjectFilePath) && customInjectFilePath.indexOf('.js')==customInjectFilePath.length-3) { 
+					_log.info("Page", "File '" + customInjectFilePath + "' injected successfully? " + page.injectJs(customInjectFilePath));
+				}
+			}
+		}						
+	};
 
     // public:
     return {

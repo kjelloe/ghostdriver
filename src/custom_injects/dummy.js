@@ -1,0 +1,1 @@
+// Empty dummy file. Put files to phantom.injectJs(..) for each phantom.open(..) in this directory

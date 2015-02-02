@@ -343,10 +343,14 @@ ghostdriver.Session = function(desiredCapabilities) {
     _decorateNewWindow = function(page) {
         var k;
 
+		// NOTE: Overriding library path for use with injecting js
+		if(ghostdriver.config.libraryPath) // Overriding if using other library path
+			page.libraryPath = ghostdriver.config.libraryPath; 
+		
         // Decorating:
         // 0. Pages lifetime will be managed by Driver, not the pages
         page.ownsPages = false;
-
+		
         // 1. Random Window Handle
         page.windowHandle = require("./third_party/uuid.js").v1();
 

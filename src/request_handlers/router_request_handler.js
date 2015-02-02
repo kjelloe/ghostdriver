@@ -83,7 +83,7 @@ ghostdriver.RouterReqHand = function() {
                 throw _errors.createInvalidReqUnknownCommandEH(req);
             }
         } catch (e) {
-            _log.error("_handle.error", JSON.stringify(e));
+            _log.error("_handle.error", "ERROR: " + e.message + " --> DETAILS:" + JSON.stringify(e));
 
             if (typeof(e.handle) === "function") {
                 e.handle(res);

@@ -41,9 +41,27 @@ ghostdriver = {
 // create logger
 _log = ghostdriver.logger.create("GhostDriver");
 
+// WORKAROUND: Obtaining ghostdriver path from arguments
+var fs = require('fs');
+var __scriptDir = '';
+for(var i=0;i<ghostdriver.system.args.length;i++) {
+    var arg = ghostdriver.system.args[i];
+	if(arg.indexOf('--ghostdriverpath')==0) {
+		__scriptDir = arg.split('=')[1];
+		__scriptDir += (__scriptDir[__scriptDir.length-1] == fs.separator ? '' : fs.separator);
+		break;
+	}	
+}
+// Setting custom library path
+phantom.libraryPath = __scriptDir + '\src'; // TODO: Do an main.js search
+_log.info("Main", "Using ghostdriver on path: " + __scriptDir);
+_log.info("Main", "Working library path: " + phantom.libraryPath);
+
 // Initialize the configuration
 require("./config.js").init(ghostdriver.system.args);
 ghostdriver.config = require("./config.js").get();
+ghostdriver.config.libraryPath = phantom.libraryPath; // Setting configured librarypath to currently used path
+ghostdriver.config.userFiles = 'custom_injects';
 
 // Enable "strict mode" for the 'parseURI' library
 require("./third_party/parseuri.js").options.strictMode = true;
@@ -86,6 +104,6 @@ try {
         phantom.exit(1);
     }
 } catch (e) {
-    _log.error("main.fail", JSON.stringify(e));
+    _log.error("_handle.error", "ERROR: " + e.message + " --> DETAILS:" + JSON.stringify(e));
     phantom.exit(1);
 }
